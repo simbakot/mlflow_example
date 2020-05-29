@@ -1,0 +1,19 @@
+name: tensorflow-example
+channels:
+  - defaults
+  - anaconda
+dependencies:
+  - python==3.7
+  - pip:
+    - mlflow==1.8.0
+    - pysftp==0.2.9
+    - Cython==0.29.19
+    - numpy==1.18.4
+    - pycocotools==2.0.0
+    - requests==2.23.0
+    - matplotlib==3.2.1
+    - segmentation-models==1.0.1
+    - Keras==2.3.1
+    - imgaug==0.4.0
+    - tqdm==4.46.0
+    - tensorflow-gpu==1.14.0
