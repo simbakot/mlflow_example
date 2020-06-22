@@ -3,9 +3,10 @@ import os
 
 import mlflow
 import mlflow.keras
-
+import mlflow.exceptions
 from services.tracking.remote_server import RemoteTracking
 from segmentation_project.train_pipeline import Pipeline
+
 
 
 class FlowTraining:
@@ -21,9 +22,9 @@ class FlowTraining:
                                        categories=categories,
                                        image_size=image_size,
                                        batch_size=batch_size,
-                                       path_to_train_annotation='segmentation_project/instances_train2017.json',
+                                       path_to_train_annotation='instances_train2017.json',
                                        path_to_train_images='./dataset/train',
-                                       path_to_val_annotation='segmentation_project/instances_val2017.json',
+                                       path_to_val_annotation='instances_val2017.json',
                                        path_to_val_images='./dataset/val')
 
     def log_tags_and_params(self, remote_run_id):
@@ -42,18 +43,23 @@ class FlowTraining:
                 return file
 
     def run(self, epochs, lr, experiment_name):
-
+        # getting the id of the experiment, creating an experiment in its absence
         remote_experiment_id = self.remote_server.get_experiment_id(name=experiment_name)
+        # creating a "run" and getting its id
         remote_run_id = self.remote_server.get_run_id(remote_experiment_id)
 
+        # indicate that we want to save the results on a remote server
         mlflow.set_tracking_uri(self.tracking_uri)
         mlflow.set_experiment(experiment_name)
 
-        with mlflow.start_run(run_id=remote_run_id, nested=True):
+        with mlflow.start_run(run_id=remote_run_id, nested=False):
             mlflow.keras.autolog()
             self.train_pipeline.train(lr=lr, epochs=epochs)
 
-        self.log_tags_and_params(remote_run_id)
+        try:
+            self.log_tags_and_params(remote_run_id)
+        except mlflow.exceptions.RestException as e:
+            print(e)
 
 
 if __name__ == "__main__":
